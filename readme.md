@@ -12,7 +12,7 @@ A URL shortening service developed in Node.js using Express and Sequelize with S
 ## Requirements
 
 - Node.js
-- npm or yarn
+- npm
 - SQLite
 
 ## Installation
