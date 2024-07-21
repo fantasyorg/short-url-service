@@ -1,4 +1,5 @@
 const express = require("express");
+const { body, param, query, validationResult } = require("express-validator");
 const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
 const ShortURL = require("../models/ShortURLModel");
@@ -73,7 +74,16 @@ const apiKeys = process.env.API_KEYS.split(",");
  *       500:
  *         description: Failed to create short URL
  */
-router.post("/", async (req, res) => {
+router.post("/", [
+  body("url").isURL().withMessage("Invalid URL format"),
+  body("key").isString().withMessage("API key is required"),
+  body("expiration").optional().isISO8601().withMessage("Invalid expiration date format")
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   const { url, key, expiration } = req.body;
 
   if (!apiKeys.includes(key)) {
@@ -127,7 +137,15 @@ router.post("/", async (req, res) => {
  *       500:
  *         description: Failed to delete URL
  */
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", [
+  param("id").isUUID().withMessage("Invalid URL ID format"),
+  query("key").isString().withMessage("API key is required")
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   const id = req.params.id;
   const key = req.query.key;
 
@@ -202,7 +220,14 @@ router.get("/", async (req, res) => {
  *       500:
  *         description: Failed to retrieve URL
  */
-router.get("/:id", async (req, res) => {
+router.get("/:id", [
+  param("id").isUUID().withMessage("Invalid URL ID format")
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   const id = req.params.id;
 
   try {
